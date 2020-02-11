@@ -17,7 +17,7 @@ julia&gt; show(abs2.(ev.vectors[1,:]))
     ev.values, abs2.(ev.vectors[1,:])
 end</code></pre><p>providing</p><pre><code class="language-julia">julia&gt; gausshermitenorm(3)
 ([-1.7320508075688739, 1.1102230246251565e-15, 1.7320508075688774], [0.16666666666666743, 0.6666666666666657, 0.16666666666666677])
-</code></pre><p>The weights and positions are often shown as a <em>lollipop plot</em>. For the 9th order rule these are <img src="../assets/GaussHermite_4_1.svg" alt="Lollipop plot of 9th order normalized Gauss-Hermite rule"/></p><p>Notice that the magnitudes of the weights drop quite dramatically away from zero, even on a logarithmic scale <img src="../assets/GaussHermite_5_1.svg" alt="Lollipop plot of 9th order normalized Gauss-Hermite rule (logarithmic scale"/></p><p>The definition of <code>MixedModels.GHnorm</code> is similar to the <code>gausshermitenorm</code> function with some extra provisions for ensuring symmetry of the abscissae and the weights and for caching values once they have been calculated.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.GHnorm" href="#MixedModels.GHnorm"><code>MixedModels.GHnorm</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">GHnorm(k::Int)</code></pre><p>Return the (unique) GaussHermiteNormalized{k} object.</p><p>The function values are stored (memoized) when first evaluated.  Subsequent evaluations for the same <code>k</code> have very low overhead.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/gausshermite.jl#L72-L79">source</a></section><pre><code class="language-julia">julia&gt; using MixedModels
+</code></pre><p>The weights and positions are often shown as a <em>lollipop plot</em>. For the 9th order rule these are <img src="../assets/GaussHermite_4_1.svg" alt="Lollipop plot of 9th order normalized Gauss-Hermite rule"/></p><p>Notice that the magnitudes of the weights drop quite dramatically away from zero, even on a logarithmic scale <img src="../assets/GaussHermite_5_1.svg" alt="Lollipop plot of 9th order normalized Gauss-Hermite rule (logarithmic scale"/></p><p>The definition of <code>MixedModels.GHnorm</code> is similar to the <code>gausshermitenorm</code> function with some extra provisions for ensuring symmetry of the abscissae and the weights and for caching values once they have been calculated.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.GHnorm" href="#MixedModels.GHnorm"><code>MixedModels.GHnorm</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">GHnorm(k::Int)</code></pre><p>Return the (unique) GaussHermiteNormalized{k} object.</p><p>The function values are stored (memoized) when first evaluated.  Subsequent evaluations for the same <code>k</code> have very low overhead.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/gausshermite.jl#L72-L79">source</a></section><pre><code class="language-julia">julia&gt; using MixedModels
 
 julia&gt; GHnorm(3)
 MixedModels.GaussHermiteNormalized{3}([-1.7320508075688772, 0.0, 1.7320508075688772], [0.16666666666666666, 0.6666666666666666, 0.16666666666666666])
@@ -29,76 +29,43 @@ julia&gt; sum(@. ghn3.w * abs2(μ + σ * ghn3.z))  # should be μ² + σ² = 13
 
 julia&gt; const dat = Dict(Symbol(k)=&gt;v for (k,v) in
     load(joinpath(dirname(pathof(MixedModels)), &quot;..&quot;, &quot;test&quot;, &quot;dat.rda&quot;)));
+Error: SystemError: opening file &quot;/home/travis/build/JuliaStats/MixedModels.jl/src/../test/dat.rda&quot;: No such file or directory
 
 julia&gt; contra = dat[:Contraception];
+Error: UndefVarError: dat not defined
 
 julia&gt; contra.urbdist = PooledArray(string.(contra.urb, contra.d));
+Error: UndefVarError: contra not defined
 
 julia&gt; describe(contra)
-7×8 DataFrames.DataFrame. Omitted printing of 1 columns
-│ Row │ variable │ mean       │ min    │ median  │ max   │ nunique │ nmissing │
-│     │ Symbol   │ Union…     │ Any    │ Union…  │ Any   │ Union…  │ Nothing  │
-├─────┼──────────┼────────────┼────────┼─────────┼───────┼─────────┼──────────┤
-│ 1   │ w        │            │ 1      │         │ 1934  │ 1934    │          │
-│ 2   │ d        │            │ 1      │         │ 61    │ 60      │          │
-│ 3   │ use      │            │ N      │         │ Y     │ 2       │          │
-│ 4   │ l        │            │ 0      │         │ 3+    │ 4       │          │
-│ 5   │ a        │ 0.00219788 │ -13.56 │ -1.5599 │ 19.44 │         │          │
-│ 6   │ urb      │            │ N      │         │ Y     │ 2       │          │
-│ 7   │ urbdist  │            │ N1     │         │ Y9    │ 102     │          │
-</code></pre><p>A smoothed scatterplot of contraception use versus age <img src="../assets/GaussHermite_9_1.svg" alt="Scatterplot smooth of contraception use versus age"/></p><p>shows that the proportion of women using artificial contraception is approximately quadratic in age.</p><p>A model with fixed-effects for age, age squared, number of live children and urban location and with random effects for district, is fit as</p><pre><code class="language-julia">julia&gt; const form1 = @formula use ~ 1 + a + abs2(a) + l + urb + (1|d);
+Error: UndefVarError: contra not defined
+</code></pre><p>A smoothed scatterplot of contraception use versus age</p><pre><code class="language-none">Error: UndefVarError: contra not defined</code></pre><p>shows that the proportion of women using artificial contraception is approximately quadratic in age.</p><p>A model with fixed-effects for age, age squared, number of live children and urban location and with random effects for district, is fit as</p><pre><code class="language-julia">julia&gt; const form1 = @formula use ~ 1 + a + abs2(a) + l + urb + (1|d);
 
 julia&gt; m1 = fit!(GeneralizedLinearMixedModel(form1, contra,
     Bernoulli()), fast=true)
-Generalized Linear Mixed Model fit by maximum likelihood (nAGQ = 1)
-  use ~ 1 + a + :(abs2(a)) + l + urb + (1 | d)
-  Distribution: Distributions.Bernoulli{Float64}
-  Link: GLM.LogitLink()
-
-  Deviance: 2372.7844
-
-Variance components:
-     Column    Variance   Std.Dev.  
-d (Intercept)  0.21774676 0.46663343
-
- Number of obs: 1934; levels of grouping factors: 60
-
-Fixed-effects parameters:
-─────────────────────────────────────────────────────────
-                Estimate    Std.Error    z value  P(&gt;|z|)
-─────────────────────────────────────────────────────────
-(Intercept)  -1.01528     0.17102      -5.93659    &lt;1e-8 
-a             0.00351346  0.00905427    0.388044   0.6980
-abs2(a)      -0.0044867   0.000710568  -6.31423    &lt;1e-9 
-l: 1          0.801881    0.15912       5.03948    &lt;1e-6 
-l: 2          0.901017    0.181635      4.96058    &lt;1e-6 
-l: 3+         0.899412    0.182255      4.93492    &lt;1e-6 
-urb: Y        0.684401    0.117653      5.81711    &lt;1e-8 
-─────────────────────────────────────────────────────────
+Error: UndefVarError: contra not defined
 </code></pre><p>For a model such as <code>m1</code>, which has a single, scalar random-effects term, the unscaled conditional density of the spherical random effects variable, <span>$\mathcal{U}$</span>, given the observed data, <span>$\mathcal{Y}=\mathbf{y}_0$</span>, can be expressed as a product of scalar density functions, <span>$f_i(u_i),\; i=1,\dots,q$</span>. In the PIRLS algorithm, which determines the conditional mode vector, <span>$\tilde{\mathbf{u}}$</span>, the optimization is performed on the <em>deviance scale</em>,</p><div>\[D(\mathbf{u})=-2\sum_{i=1}^q \log(f_i(u_i))\]</div><p>The objective, <span>$D$</span>, consists of two parts: the sum of the (squared) <em>deviance residuals</em>, measuring fidelity to the data, and the squared length of <span>$\mathbf{u}$</span>, which is the penalty. In the PIRLS algorithm, only the sum of these components is needed. To use Gauss-Hermite quadrature the contributions of each of the <span>$u_i,\;i=1,\dots,q$</span> should be separately evaluated.</p><pre><code class="language-julia">julia&gt; const devc0 = map!(abs2, m1.devc0, m1.u[1]);  # start with uᵢ²
+Error: UndefVarError: m1 not defined
 
 julia&gt; const devresid = m1.resp.devresid;   # n-dimensional vector of deviance residuals
+Error: UndefVarError: m1 not defined
 
 julia&gt; const refs = first(m1.LMM.reterms).refs;  # n-dimensional vector of indices in 1:q
+Error: UndefVarError: m1 not defined
 
 julia&gt; for (dr, i) in zip(devresid, refs)
     devc0[i] += dr
 end
+Error: UndefVarError: devresid not defined
 
 julia&gt; show(devc0)
-[121.29271752635209, 22.02261658877046, 2.9189470156188406, 30.787663287907375, 47.54194892346257, 69.55510275078151, 23.40466198124392, 46.27897250967959, 24.45279067411185, 7.75948686076041, 9.77364221924276, 42.75889919408371, 27.552582974440696, 156.42050927965533, 26.192528473175397, 27.416066046730105, 24.53808000840134, 57.566227940424476, 31.179189718940446, 22.34170428258196, 27.477954356577477, 19.988499376957616, 16.010831842363096, 9.761474328438254, 83.86327335926477, 15.56869099998324, 42.75983500244254, 51.46860864566717, 32.73318540437916, 70.41570023996672, 39.68595075292874, 27.544035558008225, 14.697521338110379, 53.04738724039266, 64.84987519708856, 19.743884721544546, 19.41560765678227, 11.24225196042944, 37.416905735659704, 54.2651009154787, 39.58256769839699, 17.398376880740173, 60.22753502117278, 28.81920323788467, 42.44406990377744, 112.99168555277039, 17.29767015560816, 51.57724970694672, 2.1872365555021602, 22.961445530935663, 47.41447871775359, 87.23151596756719, 25.92354473601497, 9.470338338739186, 61.1762110214526, 27.102773922404346, 48.01630962742524, 8.460230492238695, 30.365249868104506, 47.37405176762766]</code></pre><p>One thing to notice is that, even on the deviance scale, the contributions of different districts can be of different magnitudes. This is primarily due to different sample sizes in the different districts.</p><pre><code class="language-julia">julia&gt; using FreqTables
+Error: UndefVarError: devc0 not defined
+</code></pre><p>One thing to notice is that, even on the deviance scale, the contributions of different districts can be of different magnitudes. This is primarily due to different sample sizes in the different districts.</p><pre><code class="language-julia">julia&gt; using FreqTables
 
 julia&gt; freqtable(contra, :d)&#39;
-1×60 Named LinearAlgebra.Adjoint{Int64,Array{Int64,1}}
-&#39; ╲ d │   1    2    3    4    5    6    7  …   55   56   57   58   59   60   61
-──────┼────────────────────────────────────────────────────────────────────────
-1     │ 117   20    2   30   39   65   18  …    6   45   27   33   10   32   42
-</code></pre><p>Because the first district has one of the largest sample sizes and the third district has the smallest sample size, these two will be used for illustration. For a range of <span>$u$</span> values, evaluate the individual components of the deviance and store them in a matrix.</p><pre><code class="language-julia">const devc = m1.devc;
-const xvals = -5.0:2.0^(-4):5.0;
-const uv = vec(m1.u[1]);
-const u₀ = vec(m1.u₀[1]);
-results = zeros(length(devc0), length(xvals))
-for (j, u) in enumerate(xvals)
+Error: UndefVarError: contra not defined
+</code></pre><p>Because the first district has one of the largest sample sizes and the third district has the smallest sample size, these two will be used for illustration. For a range of <span>$u$</span> values, evaluate the individual components of the deviance and store them in a matrix.</p><pre><code class="language-julia">const devc = m1.devc;</code></pre><pre><code class="language-none">Error: UndefVarError: m1 not defined</code></pre><pre><code class="language-julia">const xvals = -5.0:2.0^(-4):5.0;
+const uv = vec(m1.u[1]);</code></pre><pre><code class="language-none">Error: UndefVarError: m1 not defined</code></pre><pre><code class="language-julia">const u₀ = vec(m1.u₀[1]);</code></pre><pre><code class="language-none">Error: UndefVarError: m1 not defined</code></pre><pre><code class="language-julia">results = zeros(length(devc0), length(xvals))</code></pre><pre><code class="language-none">Error: UndefVarError: devc0 not defined</code></pre><pre><code class="language-julia">for (j, u) in enumerate(xvals)
     fill!(devc, abs2(u))
     fill!(uv, u)
     MixedModels.updateη!(m1)
@@ -106,14 +73,13 @@ for (j, u) in enumerate(xvals)
         devc[i] += dr
     end
     copyto!(view(results, :, j), devc)
-end</code></pre><p>A plot of the deviance contribution versus <span>$u_1$</span> <img src="../assets/GaussHermite_14_1.svg" alt="Deviance contribution of u₁"/></p><p>shows that the deviance contribution is very close to a quadratic. This is also true for <span>$u_3$</span> <img src="../assets/GaussHermite_15_1.svg" alt="Deviance contribution of u₃"/></p><p>The PIRLS algorithm provides the locations of the minima of these scalar functions, stored as</p><pre><code class="language-julia">julia&gt; m1.u₀[1]
-1×60 Array{Float64,2}:
- -1.58477  -0.0727333  0.449062  0.341585  …  -0.767064  -0.90292  -1.06624
+end</code></pre><pre><code class="language-none">Error: UndefVarError: devc not defined</code></pre><p>A plot of the deviance contribution versus <span>$u_1$</span></p><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><p>shows that the deviance contribution is very close to a quadratic. This is also true for <span>$u_3$</span></p><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><p>The PIRLS algorithm provides the locations of the minima of these scalar functions, stored as</p><pre><code class="language-julia">julia&gt; m1.u₀[1]
+Error: UndefVarError: m1 not defined
 </code></pre><p>the minima themselves, evaluated as <code>devc0</code> above, and a horizontal scale, which is the inverse of diagonal of the Cholesky factor. As shown below, this is an estimate of the conditional standard deviations of the components of <span>$\mathcal{U}$</span>.</p><pre><code class="language-julia">julia&gt; const s = inv.(m1.LMM.L[Block(1,1)].diag);
+Error: UndefVarError: m1 not defined
 
 julia&gt; s&#39;
-1×60 LinearAlgebra.Adjoint{Float64,Array{Float64,1}}:
- 0.406889  0.713511  0.952164  0.627135  …  0.839679  0.654965  0.60326
+Error: UndefVarError: s not defined
 </code></pre><p>The curves can be put on a common scale, corresponding to the standard normal, as</p><pre><code class="language-julia">julia&gt; for (j, z) in enumerate(xvals)
     @. uv = u₀ + z * s
     MixedModels.updateη!(m1)
@@ -123,7 +89,8 @@ julia&gt; s&#39;
     end
     copyto!(view(results, :, j), devc)
 end
-</code></pre><p><img src="../assets/GaussHermite_19_1.svg" alt="Scaled and shifted deviance contributions"/></p><p><img src="../assets/GaussHermite_20_1.svg" alt="Scaled and shifted deviance contributions"/></p><p>On the original density scale these become</p><pre><code class="language-julia">julia&gt; for (j, z) in enumerate(xvals)
+Error: UndefVarError: s not defined
+</code></pre><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><p>On the original density scale these become</p><pre><code class="language-julia">julia&gt; for (j, z) in enumerate(xvals)
     @. uv = u₀ + z * s
     MixedModels.updateη!(m1)
     @. devc = abs2(uv) - devc0
@@ -132,7 +99,8 @@ end
     end
     copyto!(view(results, :, j), @. exp(-devc/2))
 end
-</code></pre><p><img src="../assets/GaussHermite_22_1.svg" alt="Scaled and shifted conditional density"/></p><p><img src="../assets/GaussHermite_23_1.svg" alt="Scaled and shifted conditional density"/></p><p>and the function to be integrated with the normalized Gauss-Hermite rule is</p><pre><code class="language-julia">julia&gt; for (j, z) in enumerate(xvals)
+Error: UndefVarError: s not defined
+</code></pre><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><p>and the function to be integrated with the normalized Gauss-Hermite rule is</p><pre><code class="language-julia">julia&gt; for (j, z) in enumerate(xvals)
     @. uv = u₀ + z * s
     MixedModels.updateη!(m1)
     @. devc = abs2(uv) - devc0
@@ -141,4 +109,5 @@ end
     end
     copyto!(view(results, :, j), @. exp((abs2(z) - devc)/2))
 end
-</code></pre><p><img src="../assets/GaussHermite_25_1.svg" alt="Function to be integrated with normalized Gauss-Hermite rule"/></p><p><img src="../assets/GaussHermite_26_1.svg" alt="Function to be integrated with normalized Gauss-Hermite rule"/></p><footer><hr/><a class="previous" href="../optimization/"><span class="direction">Previous</span><span class="title">Details of the parameter estimation</span></a><a class="next" href="../bootstrap/"><span class="direction">Next</span><span class="title">Parametric bootstrap for linear mixed-effects models</span></a></footer></article></body></html>
+Error: UndefVarError: s not defined
+</code></pre><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><pre><code class="language-none">Error: UndefVarError: results not defined</code></pre><footer><hr/><a class="previous" href="../optimization/"><span class="direction">Previous</span><span class="title">Details of the parameter estimation</span></a><a class="next" href="../bootstrap/"><span class="direction">Next</span><span class="title">Parametric bootstrap for linear mixed-effects models</span></a></footer></article></body></html>

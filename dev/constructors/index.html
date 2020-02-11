@@ -1,629 +1,162 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Model constructors · MixedModels</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><a href="../index.html"><img class="logo" src="../assets/logo.png" alt="MixedModels logo"/></a><h1>MixedModels</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">MixedModels.jl Documentation</a></li><li class="current"><a class="toctext" href>Model constructors</a><ul class="internal"><li><a class="toctext" href="#Examples-of-linear-mixed-effects-model-fits-1">Examples of linear mixed-effects model fits</a></li><li><a class="toctext" href="#Fitting-generalized-linear-mixed-models-1">Fitting generalized linear mixed models</a></li><li class="toplevel"><a class="toctext" href="#Extractor-functions-1">Extractor functions</a></li><li><a class="toctext" href="#Model-fit-statistics-1">Model-fit statistics</a></li><li><a class="toctext" href="#Fixed-effects-parameter-estimates-1">Fixed-effects parameter estimates</a></li><li><a class="toctext" href="#Covariance-parameter-estimates-1">Covariance parameter estimates</a></li><li><a class="toctext" href="#Conditional-modes-of-the-random-effects-1">Conditional modes of the random effects</a></li></ul></li><li><a class="toctext" href="../optimization/">Details of the parameter estimation</a></li><li><a class="toctext" href="../GaussHermite/">Normalized Gauss-Hermite Quadrature</a></li><li><a class="toctext" href="../bootstrap/">Parametric bootstrap for linear mixed-effects models</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Model constructors</a></li></ul><a class="edit-page" href="https://github.com/JuliaStats/MixedModels.jl/blob/master/docs/src/constructors.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Model constructors</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Model-constructors-1" href="#Model-constructors-1">Model constructors</a></h1><p>The <code>LinearMixedModel</code> type represents a linear mixed-effects model. Typically it is constructed from a <code>Formula</code> and an appropriate <code>data</code> type, usually a <code>DataFrame</code>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.LinearMixedModel" href="#MixedModels.LinearMixedModel"><code>MixedModels.LinearMixedModel</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-none">LinearMixedModel</code></pre><p>Linear mixed-effects model representation</p><p><strong>Fields</strong></p><ul><li><code>formula</code>: the formula for the model</li><li><code>allterms</code>: a vector of random-effects terms, the fixed-effects terms and the response</li><li><code>sqrtwts</code>: vector of square roots of the case weights.  Can be empty.</li><li><code>A</code>: an <code>nt × nt</code> symmetric <code>BlockMatrix</code> of matrices representing <code>hcat(Z,X,y)&#39;hcat(Z,X,y)</code></li><li><code>L</code>: a <code>nt × nt</code> <code>BlockMatrix</code> - the lower Cholesky factor of <code>Λ&#39;AΛ+I</code></li><li><code>optsum</code>: an <a href="../optimization/#MixedModels.OptSummary"><code>OptSummary</code></a> object</li></ul><p><strong>Properties</strong></p><ul><li><code>θ</code> or <code>theta</code>: the covariance parameter vector used to form λ</li><li><code>β</code> or <code>beta</code>: the fixed-effects coefficient vector</li><li><code>λ</code> or <code>lambda</code>: a vector of lower triangular matrices repeated on the diagonal blocks of <code>Λ</code></li><li><code>σ</code> or <code>sigma</code>: current value of the standard deviation of the per-observation noise</li><li><code>b</code>: random effects on the original scale, as a vector of matrices</li><li><code>reterms</code>: a <code>Vector{ReMat{T}}</code> of random-effects terms.</li><li><code>feterms</code>: a <code>Vector{FeMat{T}}</code> of the fixed-effects model matrix and the response</li><li><code>u</code>: random effects on the orthogonal scale, as a vector of matrices</li><li><code>lowerbd</code>: lower bounds on the elements of θ</li><li><code>X</code>: the fixed-effects model matrix</li><li><code>y</code>: the response vector</li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L1-L28">source</a></section><h2><a class="nav-anchor" id="Examples-of-linear-mixed-effects-model-fits-1" href="#Examples-of-linear-mixed-effects-model-fits-1">Examples of linear mixed-effects model fits</a></h2><p>For illustration, several data sets from the <em>lme4</em> package for <em>R</em> are made available in <code>.rda</code> format in this package. These include the <code>Dyestuff</code> and <code>Dyestuff2</code> data sets.</p><pre><code class="language-julia">julia&gt; using DataFrames, MixedModels, RData, StatsBase
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Model constructors · MixedModels</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><a href="../index.html"><img class="logo" src="../assets/logo.png" alt="MixedModels logo"/></a><h1>MixedModels</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">MixedModels.jl Documentation</a></li><li class="current"><a class="toctext" href>Model constructors</a><ul class="internal"><li><a class="toctext" href="#Examples-of-linear-mixed-effects-model-fits-1">Examples of linear mixed-effects model fits</a></li><li><a class="toctext" href="#Fitting-generalized-linear-mixed-models-1">Fitting generalized linear mixed models</a></li><li class="toplevel"><a class="toctext" href="#Extractor-functions-1">Extractor functions</a></li><li><a class="toctext" href="#Model-fit-statistics-1">Model-fit statistics</a></li><li><a class="toctext" href="#Fixed-effects-parameter-estimates-1">Fixed-effects parameter estimates</a></li><li><a class="toctext" href="#Covariance-parameter-estimates-1">Covariance parameter estimates</a></li><li><a class="toctext" href="#Conditional-modes-of-the-random-effects-1">Conditional modes of the random effects</a></li></ul></li><li><a class="toctext" href="../optimization/">Details of the parameter estimation</a></li><li><a class="toctext" href="../GaussHermite/">Normalized Gauss-Hermite Quadrature</a></li><li><a class="toctext" href="../bootstrap/">Parametric bootstrap for linear mixed-effects models</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Model constructors</a></li></ul><a class="edit-page" href="https://github.com/JuliaStats/MixedModels.jl/blob/master/docs/src/constructors.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Model constructors</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Model-constructors-1" href="#Model-constructors-1">Model constructors</a></h1><p>The <code>LinearMixedModel</code> type represents a linear mixed-effects model. Typically it is constructed from a <code>Formula</code> and an appropriate <code>data</code> type, usually a <code>DataFrame</code>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.LinearMixedModel" href="#MixedModels.LinearMixedModel"><code>MixedModels.LinearMixedModel</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-none">LinearMixedModel</code></pre><p>Linear mixed-effects model representation</p><p><strong>Fields</strong></p><ul><li><code>formula</code>: the formula for the model</li><li><code>allterms</code>: a vector of random-effects terms, the fixed-effects terms and the response</li><li><code>sqrtwts</code>: vector of square roots of the case weights.  Can be empty.</li><li><code>A</code>: an <code>nt × nt</code> symmetric <code>BlockMatrix</code> of matrices representing <code>hcat(Z,X,y)&#39;hcat(Z,X,y)</code></li><li><code>L</code>: a <code>nt × nt</code> <code>BlockMatrix</code> - the lower Cholesky factor of <code>Λ&#39;AΛ+I</code></li><li><code>optsum</code>: an <a href="../optimization/#MixedModels.OptSummary"><code>OptSummary</code></a> object</li></ul><p><strong>Properties</strong></p><ul><li><code>θ</code> or <code>theta</code>: the covariance parameter vector used to form λ</li><li><code>β</code> or <code>beta</code>: the fixed-effects coefficient vector</li><li><code>λ</code> or <code>lambda</code>: a vector of lower triangular matrices repeated on the diagonal blocks of <code>Λ</code></li><li><code>σ</code> or <code>sigma</code>: current value of the standard deviation of the per-observation noise</li><li><code>b</code>: random effects on the original scale, as a vector of matrices</li><li><code>reterms</code>: a <code>Vector{ReMat{T}}</code> of random-effects terms.</li><li><code>feterms</code>: a <code>Vector{FeMat{T}}</code> of the fixed-effects model matrix and the response</li><li><code>u</code>: random effects on the orthogonal scale, as a vector of matrices</li><li><code>lowerbd</code>: lower bounds on the elements of θ</li><li><code>X</code>: the fixed-effects model matrix</li><li><code>y</code>: the response vector</li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L1-L28">source</a></section><h2><a class="nav-anchor" id="Examples-of-linear-mixed-effects-model-fits-1" href="#Examples-of-linear-mixed-effects-model-fits-1">Examples of linear mixed-effects model fits</a></h2><p>For illustration, several data sets from the <em>lme4</em> package for <em>R</em> are made available in <code>.rda</code> format in this package. These include the <code>Dyestuff</code> and <code>Dyestuff2</code> data sets.</p><pre><code class="language-julia">julia&gt; using DataFrames, MixedModels, RData, StatsBase
 
 julia&gt; datf = joinpath(dirname(pathof(MixedModels)),&quot;..&quot;,&quot;test&quot;,&quot;dat.rda&quot;)
 &quot;/home/travis/build/JuliaStats/MixedModels.jl/src/../test/dat.rda&quot;
 
 julia&gt; const dat = Dict(Symbol(k)=&gt;v for (k,v) in load(datf))
-Dict{Symbol,DataFrames.DataFrame} with 62 entries:
-  :bs10          =&gt; 1104×6 DataFrames.DataFrame…
-  :Genetics      =&gt; 60×5 DataFrames.DataFrame…
-  :Contraception =&gt; 1934×6 DataFrames.DataFrame. Omitted printing of 1 columns…
-  :Mmmec         =&gt; 354×6 DataFrames.DataFrame…
-  :kb07          =&gt; 1790×10 DataFrames.DataFrame. Omitted printing of 4 columns…
-  :Rail          =&gt; 18×2 DataFrames.DataFrame…
-  :KKL           =&gt; 53765×24 DataFrames.DataFrame. Omitted printing of 18 colum…
-  :Bond          =&gt; 21×3 DataFrames.DataFrame…
-  :VerbAgg       =&gt; 7584×9 DataFrames.DataFrame. Omitted printing of 4 columns…
-  :ml1m          =&gt; 1000209×3 DataFrames.DataFrame…
-  :ergoStool     =&gt; 36×3 DataFrames.DataFrame…
-  :s3bbx         =&gt; 2449×6 DataFrames.DataFrame. Omitted printing of 1 columns…
-  :cake          =&gt; 270×5 DataFrames.DataFrame…
-  :Cultivation   =&gt; 24×4 DataFrames.DataFrame…
-  :Pastes        =&gt; 60×4 DataFrames.DataFrame…
-  :Exam          =&gt; 4059×5 DataFrames.DataFrame…
-  :Socatt        =&gt; 1056×9 DataFrames.DataFrame. Omitted printing of 5 columns…
-  :WWheat        =&gt; 60×3 DataFrames.DataFrame…
-  :Pixel         =&gt; 102×5 DataFrames.DataFrame…
-  ⋮              =&gt; ⋮
+Error: SystemError: opening file &quot;/home/travis/build/JuliaStats/MixedModels.jl/src/../test/dat.rda&quot;: No such file or directory
 
 julia&gt; describe(dat[:Dyestuff])
-2×8 DataFrames.DataFrame. Omitted printing of 1 columns
-│ Row │ variable │ mean   │ min    │ median │ max    │ nunique │ nmissing │
-│     │ Symbol   │ Union… │ Any    │ Union… │ Any    │ Union…  │ Nothing  │
-├─────┼──────────┼────────┼────────┼────────┼────────┼─────────┼──────────┤
-│ 1   │ G        │        │ A      │        │ F      │ 6       │          │
-│ 2   │ Y        │ 1527.5 │ 1440.0 │ 1530.0 │ 1635.0 │         │          │
+Error: UndefVarError: dat not defined
 </code></pre><p>The columns in these data sets have been renamed for convenience. The response is always named <code>Y</code>. Potential grouping factors for random-effects terms are named <code>G</code>, <code>H</code>, etc. Numeric covariates are named starting with <code>U</code>. Categorical covariates not suitable as grouping factors are named starting with <code>A</code>.</p><h3><a class="nav-anchor" id="Models-with-simple,-scalar-random-effects-1" href="#Models-with-simple,-scalar-random-effects-1">Models with simple, scalar random effects</a></h3><p>The formula language in <em>Julia</em> is similar to that in <em>R</em> except that the formula must be enclosed in a call to the <code>@formula</code> macro. A basic model with simple, scalar random effects for the levels of <code>G</code> (the batch of an intermediate product, in this case) is declared and fit as</p><pre><code class="language-julia">julia&gt; fm1 = fit!(LinearMixedModel(@formula(Y ~ 1 + (1|G)),
     dat[:Dyestuff]))
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + (1 | G)
-   logLik   -2 logLik     AIC        BIC    
- -163.66353  327.32706  333.32706  337.53065
-
-Variance components:
-            Column    Variance  Std.Dev. 
-G        (Intercept)  1388.3333 37.260345
-Residual              2451.2500 49.510100
- Number of obs: 30; levels of grouping factors: 6
-
-  Fixed-effects parameters:
-──────────────────────────────────────────────────
-             Estimate  Std.Error  z value  P(&gt;|z|)
-──────────────────────────────────────────────────
-(Intercept)    1527.5    17.6946   86.326   &lt;1e-99
-──────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>An alternative expression is</p><pre><code class="language-julia">julia&gt; fm1 = fit(MixedModel, @formula(Y ~ 1 + (1|G)), dat[:Dyestuff])
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + (1 | G)
-   logLik   -2 logLik     AIC        BIC    
- -163.66353  327.32706  333.32706  337.53065
-
-Variance components:
-            Column    Variance  Std.Dev. 
-G        (Intercept)  1388.3333 37.260345
-Residual              2451.2500 49.510100
- Number of obs: 30; levels of grouping factors: 6
-
-  Fixed-effects parameters:
-──────────────────────────────────────────────────
-             Estimate  Std.Error  z value  P(&gt;|z|)
-──────────────────────────────────────────────────
-(Intercept)    1527.5    17.6946   86.326   &lt;1e-99
-──────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>(If you are new to Julia you may find that this first fit takes an unexpectedly long time, due to Just-In-Time (JIT) compilation of the code. The second and subsequent calls to such functions are much faster.)</p><pre><code class="language-julia">julia&gt; @time fit(MixedModel, @formula(Y ~ 1 + (1|G)), dat[:Dyestuff2]);
-  0.508200 seconds (909.15 k allocations: 47.344 MiB, 4.84% gc time)
+Error: UndefVarError: dat not defined
 </code></pre><p>By default, the model fit is by maximum likelihood.  To use the <code>REML</code> criterion instead, add the optional named argument <code>REML = true</code> to the call to <code>fit!</code></p><pre><code class="language-julia">julia&gt; fm1R = fit(MixedModel, @formula(Y ~ 1 + (1|G)),
     dat[:Dyestuff], REML=true)
-Linear mixed model fit by REML
- Y ~ 1 + (1 | G)
- REML criterion at convergence: 319.6542768422538
-
-Variance components:
-            Column    Variance  Std.Dev. 
-G        (Intercept)  1764.0506 42.000602
-Residual              2451.2499 49.510099
- Number of obs: 30; levels of grouping factors: 6
-
-  Fixed-effects parameters:
-──────────────────────────────────────────────────
-             Estimate  Std.Error  z value  P(&gt;|z|)
-──────────────────────────────────────────────────
-(Intercept)    1527.5    19.3834  78.8045   &lt;1e-99
-──────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><h3><a class="nav-anchor" id="Simple,-scalar-random-effects-1" href="#Simple,-scalar-random-effects-1">Simple, scalar random effects</a></h3><p>A simple, scalar random effects term in a mixed-effects model formula is of the form <code>(1|G)</code>. All random effects terms end with <code>|G</code> where <code>G</code> is the <em>grouping factor</em> for the random effect. The name or, more generally, the expression <code>G</code> should evaluate to a categorical array that has a distinct set of <em>levels</em>. The random effects are associated with the levels of the grouping factor.</p><p>A <em>scalar</em> random effect is, as the name implies, one scalar value for each level of the grouping factor. A <em>simple, scalar</em> random effects term is of the form, <code>(1|G)</code>. It corresponds to a shift in the intercept for each level of the grouping factor.</p><h3><a class="nav-anchor" id="Models-with-vector-valued-random-effects-1" href="#Models-with-vector-valued-random-effects-1">Models with vector-valued random effects</a></h3><p>The <em>sleepstudy</em> data are observations of reaction time, <code>Y</code>, on several subjects, <code>G</code>, after 0 to 9 days of sleep deprivation, <code>U</code>. A model with random intercepts and random slopes for each subject, allowing for within-subject correlation of the slope and intercept, is fit as</p><pre><code class="language-julia">julia&gt; fm2 = fit(MixedModel, @formula(Y ~ 1+U + (1+U|G)), dat[:sleepstudy])
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + (1 + U | G)
-   logLik   -2 logLik     AIC        BIC    
- -875.96967 1751.93934 1763.93934 1783.09709
-
-Variance components:
-            Column    Variance  Std.Dev.   Corr.
-G        (Intercept)  565.51068 23.780469
-         U             32.68212  5.716828  0.08
-Residual              654.94145 25.591824
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-───────────────────────────────────────────────────
-             Estimate  Std.Error   z value  P(&gt;|z|)
-───────────────────────────────────────────────────
-(Intercept)  251.405     6.63226  37.9064    &lt;1e-99
-U             10.4673    1.50224   6.96781   &lt;1e-11
-───────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><h3><a class="nav-anchor" id="Models-with-multiple,-scalar-random-effects-terms-1" href="#Models-with-multiple,-scalar-random-effects-terms-1">Models with multiple, scalar random-effects terms</a></h3><p>A model for the <em>Penicillin</em> data incorporates random effects for the plate, <code>G</code>, and for the sample, <code>H</code>. As every sample is used on every plate these two factors are <em>crossed</em>.</p><pre><code class="language-julia">julia&gt; fm4 = fit(MixedModel,@formula(Y ~ 1+(1|G)+(1|H)),dat[:Penicillin])
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + (1 | G) + (1 | H)
-   logLik   -2 logLik     AIC        BIC    
- -166.09417  332.18835  340.18835  352.06760
-
-Variance components:
-            Column    Variance   Std.Dev. 
-G        (Intercept)  0.71497945 0.8455646
-H        (Intercept)  3.13519425 1.7706480
-Residual              0.30242640 0.5499331
- Number of obs: 144; levels of grouping factors: 24, 6
-
-  Fixed-effects parameters:
-──────────────────────────────────────────────────
-             Estimate  Std.Error  z value  P(&gt;|z|)
-──────────────────────────────────────────────────
-(Intercept)   22.9722   0.744596  30.8519   &lt;1e-99
-──────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>In contrast the sample, <code>G</code>, grouping factor is <em>nested</em> within the batch, <code>H</code>, grouping factor in the <em>Pastes</em> data. That is, each level of <code>G</code> occurs in conjunction with only one level of <code>H</code>.</p><pre><code class="language-julia">julia&gt; fm5 = fit(MixedModel, @formula(Y ~ 1 + (1|G) + (1|H)), dat[:Pastes])
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + (1 | G) + (1 | H)
-   logLik   -2 logLik     AIC        BIC    
- -123.99723  247.99447  255.99447  264.37184
-
-Variance components:
-            Column    Variance   Std.Dev.  
-G        (Intercept)  8.43361634 2.90406893
-H        (Intercept)  1.19918042 1.09507097
-Residual              0.67800208 0.82340882
- Number of obs: 60; levels of grouping factors: 30, 10
-
-  Fixed-effects parameters:
-──────────────────────────────────────────────────
-             Estimate  Std.Error  z value  P(&gt;|z|)
-──────────────────────────────────────────────────
-(Intercept)   60.0533   0.642136  93.5212   &lt;1e-99
-──────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>In observational studies it is common to encounter <em>partially crossed</em> grouping factors. For example, the <em>InstEval</em> data are course evaluations by students, <code>G</code>, of instructors, <code>H</code>. Additional covariates include the academic department, <code>I</code>, in which the course was given and <code>A</code>, whether or not it was a service course.</p><pre><code class="language-julia">julia&gt; fm6 = fit(MixedModel,@formula(Y ~ 1+ A*I +(1|G)+(1|H)),dat[:InstEval])
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + A + I + A &amp; I + (1 | G) + (1 | H)
-     logLik        -2 logLik          AIC             BIC       
- -1.18792777×10⁵  2.37585553×10⁵  2.37647553×10⁵  2.37932876×10⁵
-
-Variance components:
-            Column    Variance   Std.Dev.  
-G        (Intercept)  0.10541798 0.32468136
-H        (Intercept)  0.25841636 0.50834669
-Residual              1.38472777 1.17674456
- Number of obs: 73421; levels of grouping factors: 2972, 1128
-
-  Fixed-effects parameters:
-────────────────────────────────────────────────────────
-                Estimate  Std.Error     z value  P(&gt;|z|)
-────────────────────────────────────────────────────────
-(Intercept)    3.22961    0.064053   50.4209      &lt;1e-99
-A: 1           0.252025   0.0686507   3.67112     0.0002
-I: 5           0.129536   0.101294    1.27882     0.2010
-I: 10         -0.176751   0.0881352  -2.00545     0.0449
-I: 12          0.0517102  0.0817523   0.632522    0.5270
-I: 6           0.0347319  0.085621    0.405647    0.6850
-I: 7           0.14594    0.0997984   1.46235     0.1436
-I: 4           0.151689   0.0816897   1.85689     0.0633
-I: 8           0.104206   0.118751    0.877517    0.3802
-I: 9           0.0440401  0.0962985   0.457329    0.6474
-I: 14          0.0517546  0.0986029   0.524879    0.5997
-I: 1           0.0466719  0.101942    0.457828    0.6471
-I: 3           0.0563461  0.0977925   0.57618     0.5645
-I: 11          0.0596536  0.100233    0.59515     0.5517
-I: 2           0.0055628  0.110867    0.0501756   0.9600
-A: 1 &amp; I: 5   -0.180757   0.123179   -1.46744     0.1423
-A: 1 &amp; I: 10   0.0186492  0.110017    0.169513    0.8654
-A: 1 &amp; I: 12  -0.282269   0.0792937  -3.55979     0.0004
-A: 1 &amp; I: 6   -0.494464   0.0790278  -6.25683     &lt;1e-9 
-A: 1 &amp; I: 7   -0.392054   0.110313   -3.55403     0.0004
-A: 1 &amp; I: 4   -0.278547   0.0823727  -3.38154     0.0007
-A: 1 &amp; I: 8   -0.189526   0.111449   -1.70056     0.0890
-A: 1 &amp; I: 9   -0.499868   0.0885423  -5.64553     &lt;1e-7 
-A: 1 &amp; I: 14  -0.497162   0.0917162  -5.42065     &lt;1e-7 
-A: 1 &amp; I: 1   -0.24042    0.0982071  -2.4481      0.0144
-A: 1 &amp; I: 3   -0.223013   0.0890548  -2.50422     0.0123
-A: 1 &amp; I: 11  -0.516997   0.0809077  -6.38997     &lt;1e-9 
-A: 1 &amp; I: 2   -0.384773   0.091843   -4.18946     &lt;1e-4 
-────────────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><h3><a class="nav-anchor" id="Simplifying-the-random-effect-correlation-structure-1" href="#Simplifying-the-random-effect-correlation-structure-1">Simplifying the random effect correlation structure</a></h3><p>MixedEffects.jl estimates not only the <em>variance</em> of the effects for each random effect level, but also the <em>correlation</em> between the random effects for different predictors. So, for the model of the <em>sleepstudy</em> data above, one of the parameters that is estimated is the correlation between each subject&#39;s random intercept (i.e., their baseline reaction time) and slope (i.e., their particular change in reaction time over days of sleep deprivation). In some cases, you may wish to simplify the random effects structure by removing these correlation parameters. This often arises when there are many random effects you want to estimate (as is common in psychological experiments with many conditions and covariates), since the number of random effects parameters increases as the square of the number of predictors, making these models difficult to estimate from limited data.</p><p>A model with uncorrelated random effects for the intercept and slope by subject is fit as</p><pre><code class="language-julia">julia&gt; fm3 = fit!(zerocorr!(LinearMixedModel(@formula(Y ~ 1+U+(1+U|G)),
     dat[:sleepstudy])))
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + (1 + U | G)
-   logLik   -2 logLik     AIC        BIC    
- -876.00163 1752.00326 1762.00326 1777.96804
-
-Variance components:
-            Column    Variance  Std.Dev.   Corr.
-G        (Intercept)  584.258971 24.17145
-         U             33.632805  5.79938   .  
-Residual              653.115782 25.55613
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-───────────────────────────────────────────────────
-             Estimate  Std.Error   z value  P(&gt;|z|)
-───────────────────────────────────────────────────
-(Intercept)  251.405     6.70771  37.48      &lt;1e-99
-U             10.4673    1.51931   6.88951   &lt;1e-11
-───────────────────────────────────────────────────
-</code></pre><p>Note that the use of <code>zerocorr!</code> requires the model to be constructed, then altered to eliminate the correlation of the random effects, then fit with a call to the mutating function, <code>fit!</code>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.zerocorr!" href="#MixedModels.zerocorr!"><code>MixedModels.zerocorr!</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">zerocorr!(m::LinearMixedModel[, trmnms::Vector{Symbol}])</code></pre><p>Rewrite the random effects specification for the grouping factors in <code>trmnms</code> to zero correlation parameter.</p><p>The default for <code>trmnms</code> is all the names of random-effects terms.</p><p>A random effects term is in the zero correlation parameter configuration when the off-diagonal elements of λ are all zero - hence there are no correlation parameters in that term being estimated.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L847-L856">source</a></section><p>The special syntax <code>zerocorr</code> can be applied to individual random effects terms inside the <code>@formula</code>:</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.zerocorr" href="#MixedModels.zerocorr"><code>MixedModels.zerocorr</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">zerocorr(term::RandomEffectsTerm)</code></pre><p>Remove correlations between random effects in <code>term</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/randomeffectsterm.jl#L137-L141">source</a></section><pre><code class="language-julia">julia&gt; fit(MixedModel, @formula(Y ~ 1 + U + zerocorr(1+U|G)), dat[:sleepstudy])
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + MixedModels.ZeroCorr((1 + U | G))
-   logLik   -2 logLik     AIC        BIC    
- -876.00163 1752.00326 1762.00326 1777.96804
-
-Variance components:
-            Column    Variance  Std.Dev.   Corr.
-G        (Intercept)  584.258971 24.17145
-         U             33.632805  5.79938   .  
-Residual              653.115782 25.55613
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-───────────────────────────────────────────────────
-             Estimate  Std.Error   z value  P(&gt;|z|)
-───────────────────────────────────────────────────
-(Intercept)  251.405     6.70771  37.48      &lt;1e-99
-U             10.4673    1.51931   6.88951   &lt;1e-11
-───────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
+</code></pre><p>Note that the use of <code>zerocorr!</code> requires the model to be constructed, then altered to eliminate the correlation of the random effects, then fit with a call to the mutating function, <code>fit!</code>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.zerocorr!" href="#MixedModels.zerocorr!"><code>MixedModels.zerocorr!</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">zerocorr!(m::LinearMixedModel[, trmnms::Vector{Symbol}])</code></pre><p>Rewrite the random effects specification for the grouping factors in <code>trmnms</code> to zero correlation parameter.</p><p>The default for <code>trmnms</code> is all the names of random-effects terms.</p><p>A random effects term is in the zero correlation parameter configuration when the off-diagonal elements of λ are all zero - hence there are no correlation parameters in that term being estimated.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L847-L856">source</a></section><p>The special syntax <code>zerocorr</code> can be applied to individual random effects terms inside the <code>@formula</code>:</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.zerocorr" href="#MixedModels.zerocorr"><code>MixedModels.zerocorr</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">zerocorr(term::RandomEffectsTerm)</code></pre><p>Remove correlations between random effects in <code>term</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/randomeffectsterm.jl#L137-L141">source</a></section><pre><code class="language-julia">julia&gt; fit(MixedModel, @formula(Y ~ 1 + U + zerocorr(1+U|G)), dat[:sleepstudy])
+Error: UndefVarError: dat not defined
 </code></pre><p>Alternatively, correlations between parameters can be removed by including them as separate random effects terms:</p><pre><code class="language-julia">julia&gt; fit(MixedModel, @formula(Y ~ 1+U+(1|G)+(0+U|G)), dat[:sleepstudy])
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + (1 | G) + (0 + U | G)
-   logLik   -2 logLik     AIC        BIC    
- -876.00163 1752.00326 1762.00326 1777.96804
-
-Variance components:
-            Column    Variance  Std.Dev.   Corr.
-G        (Intercept)  584.258971 24.17145
-         U             33.632805  5.79938   .  
-Residual              653.115782 25.55613
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-───────────────────────────────────────────────────
-             Estimate  Std.Error   z value  P(&gt;|z|)
-───────────────────────────────────────────────────
-(Intercept)  251.405     6.70771  37.48      &lt;1e-99
-U             10.4673    1.51931   6.88951   &lt;1e-11
-───────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>Note that it <strong>is</strong> necessary to explicitly block the inclusion of an intercept term by adding <code>0</code> in the random-effects term <code>(0+U|G)</code>.</p><p>Finally, for predictors that are categorical, MixedModels.jl will estimate correlations between each level. Notice the large number of correlation parameters if we treat <code>U</code> as a categorical variable by giving it contrasts:</p><pre><code class="language-julia">julia&gt; fit(MixedModel, @formula(Y ~ 1+U+(1+U|G)), dat[:sleepstudy],
     contrasts=Dict(:U=&gt;DummyCoding()))
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + (1 + U | G)
-   logLik   -2 logLik     AIC        BIC    
-  -805.9946  1611.9893  1743.9893  1954.7244
-
-Variance components:
-            Column     Variance   Std.Dev.    Corr.
-G        (Intercept)   953.311441 30.8757420
-         U: 1.0        493.786396 22.2213050 -0.30
-         U: 2.0        911.389765 30.1892326 -0.57  0.75
-         U: 3.0       1264.387554 35.5582276 -0.37  0.72  0.87
-         U: 4.0       1481.511685 38.4904103 -0.31  0.58  0.67  0.91
-         U: 5.0       2294.445791 47.9003736 -0.25  0.46  0.45  0.70  0.85
-         U: 6.0       3849.198322 62.0419078 -0.27  0.30  0.48  0.70  0.77  0.75
-         U: 7.0       1806.989968 42.5087046 -0.15  0.22  0.47  0.50  0.63  0.64  0.71
-         U: 8.0       3152.168191 56.1441733 -0.20  0.28  0.36  0.56  0.73  0.90  0.73  0.74
-         U: 9.0       3078.933165 55.4881354  0.06  0.26  0.16  0.38  0.59  0.78  0.38  0.53  0.85
-Residual                20.895435  4.5711525
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-────────────────────────────────────────────────────
-              Estimate  Std.Error   z value  P(&gt;|z|)
-────────────────────────────────────────────────────
-(Intercept)  256.652      7.35681  34.8863    &lt;1e-99
-U: 1.0         7.84395    5.45475   1.438     0.1504
-U: 2.0         8.71009    7.27698   1.19694   0.2313
-U: 3.0        26.3402     8.51854   3.0921    0.0020
-U: 4.0        31.9976     9.19934   3.47825   0.0005
-U: 5.0        51.8667    11.3926    4.55267   &lt;1e-5 
-U: 6.0        55.5265    14.7026    3.77664   0.0002
-U: 7.0        62.0988    10.1346    6.12741   &lt;1e-9 
-U: 8.0        79.9777    13.3207    6.004     &lt;1e-8 
-U: 9.0        94.1994    13.1671    7.15413   &lt;1e-12
-────────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>Separating the <code>1</code> and <code>U</code> random effects into separate terms removes the correlations between the intercept and the levels of <code>U</code>, but not between the levels themselves:</p><pre><code class="language-julia">julia&gt; fit(MixedModel, @formula(Y ~ 1+U+(1|G)+(0+U|G)), dat[:sleepstudy],
     contrasts=Dict(:U=&gt;DummyCoding()))
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + (1 | G) + (0 + U | G)
-   logLik   -2 logLik     AIC        BIC    
- -805.39921 1610.79843 1744.79843 1958.72654
-
-Variance components:
-            Column     Variance    Std.Dev.    Corr.
-G        (Intercept)     2.5415778  1.5942327
-         U: 0.0        954.2404965 30.8907834   .  
-         U: 1.0       1034.6227156 32.1655517   .    0.75
-         U: 2.0        799.0319005 28.2671523   .    0.48  0.79
-         U: 3.0       1403.9147478 37.4688504   .    0.47  0.75  0.89
-         U: 4.0       1685.8227666 41.0587721   .    0.45  0.66  0.71  0.92
-         U: 5.0       2506.8988117 50.0689406   .    0.37  0.53  0.50  0.73  0.86
-         U: 6.0       3744.9635888 61.1961076   .    0.22  0.32  0.46  0.68  0.76  0.75
-         U: 7.0       2346.0430464 48.4359685   .    0.50  0.48  0.60  0.61  0.70  0.69  0.71
-         U: 8.0       3397.2407258 58.2858536   .    0.33  0.40  0.41  0.60  0.75  0.91  0.73  0.77
-         U: 9.0       4210.3830545 64.8874645   .    0.52  0.55  0.43  0.57  0.72  0.84  0.46  0.66  0.89
-Residual                18.5798752  4.3104379
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-────────────────────────────────────────────────────
-              Estimate  Std.Error   z value  P(&gt;|z|)
-────────────────────────────────────────────────────
-(Intercept)  256.652      7.36117  34.8656    &lt;1e-99
-U: 1.0         7.84395    5.45673   1.43748   0.1506
-U: 2.0         8.71009    7.286     1.19546   0.2319
-U: 3.0        26.3402     8.52595   3.08942   0.0020
-U: 4.0        31.9976     9.20819   3.47491   0.0005
-U: 5.0        51.8667    11.4006    4.54946   &lt;1e-5 
-U: 6.0        55.5265    14.7128    3.77401   0.0002
-U: 7.0        62.0988    10.1305    6.12987   &lt;1e-9 
-U: 8.0        79.9777    13.3289    6.00031   &lt;1e-8 
-U: 9.0        94.1994    13.1566    7.15988   &lt;1e-12
-────────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>But using <code>zerocorr</code> on the individual terms (or <code>zerocorr!</code> on the constructed model object as above) does remove the correlations between the levels:</p><pre><code class="language-julia">julia&gt; fit(MixedModel, @formula(Y ~ 1+U+zerocorr(1+U|G)), dat[:sleepstudy],
     contrasts=Dict(:U=&gt;DummyCoding()))
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + MixedModels.ZeroCorr((1 + U | G))
-   logLik   -2 logLik     AIC        BIC    
-  -882.9138  1765.8276  1807.8276  1874.8797
-
-Variance components:
-            Column    Variance   Std.Dev.   Corr.
-G        (Intercept)   958.62658 30.961695
-         U: 1.0          0.00000  0.000000   .  
-         U: 2.0          0.00000  0.000000   .     .  
-         U: 3.0          0.00000  0.000000   .     .     .  
-         U: 4.0          0.00000  0.000000   .     .     .     .  
-         U: 5.0        519.69590 22.796840   .     .     .     .     .  
-         U: 6.0       1703.74577 41.276455   .     .     .     .     .     .  
-         U: 7.0        608.70979 24.672045   .     .     .     .     .     .     .  
-         U: 8.0       1273.04706 35.679785   .     .     .     .     .     .     .     .  
-         U: 9.0       1753.84187 41.878895   .     .     .     .     .     .     .     .     .  
-Residual               434.86824 20.853495
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-────────────────────────────────────────────────────
-              Estimate  Std.Error   z value  P(&gt;|z|)
-────────────────────────────────────────────────────
-(Intercept)  256.652      8.79866  29.1694    &lt;1e-99
-U: 1.0         7.84395    6.95116   1.12844   0.2591
-U: 2.0         8.71009    6.95116   1.25304   0.2102
-U: 3.0        26.3402     6.95116   3.78932   0.0002
-U: 4.0        31.9976     6.95116   4.6032    &lt;1e-5 
-U: 5.0        51.8667     8.78582   5.90345   &lt;1e-8 
-U: 6.0        55.5265    11.9571    4.64382   &lt;1e-5 
-U: 7.0        62.0988     9.06289   6.85199   &lt;1e-11
-U: 8.0        79.9777    10.9107    7.3302    &lt;1e-12
-U: 9.0        94.1994    12.0729    7.80257   &lt;1e-14
-────────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 
 julia&gt; fit(MixedModel, @formula(Y ~ 1+U+(1|G)+zerocorr(0+U|G)),dat[:sleepstudy],
     contrasts=Dict(:U=&gt;DummyCoding()))
-Linear mixed model fit by maximum likelihood
- Y ~ 1 + U + (1 | G) + MixedModels.ZeroCorr((0 + U | G))
-   logLik   -2 logLik     AIC        BIC    
-  -878.9843  1757.9686  1801.9686  1872.2137
-
-Variance components:
-            Column      Variance     Std.Dev.    Corr.
-G        (Intercept)  1134.94156070 33.68889373
-         U: 0.0        776.51958520 27.86610100   .  
-         U: 1.0        358.03871198 18.92191090   .     .  
-         U: 2.0        221.43623202 14.88073358   .     .     .  
-         U: 3.0          0.19919338  0.44631086   .     .     .     .  
-         U: 4.0         44.71146612  6.68666330   .     .     .     .     .  
-         U: 5.0        670.63147167 25.89655328   .     .     .     .     .     .  
-         U: 6.0       1740.20863255 41.71580795   .     .     .     .     .     .     .  
-         U: 7.0        909.45128898 30.15711009   .     .     .     .     .     .     .     .  
-         U: 8.0       1458.46963229 38.18991532   .     .     .     .     .     .     .     .     .  
-         U: 9.0       2028.97616421 45.04415794   .     .     .     .     .     .     .     .     .     .  
-Residual               180.60832564 13.43905970
- Number of obs: 180; levels of grouping factors: 18
-
-  Fixed-effects parameters:
-─────────────────────────────────────────────────────
-              Estimate  Std.Error    z value  P(&gt;|z|)
-─────────────────────────────────────────────────────
-(Intercept)  256.652     10.7808   23.8063     &lt;1e-99
-U: 1.0         7.84395    9.11584   0.860474   0.3895
-U: 2.0         8.71009    8.68962   1.00236    0.3162
-U: 3.0        26.3402     7.95101   3.31281    0.0009
-U: 4.0        31.9976     8.10503   3.94787    &lt;1e-4 
-U: 5.0        51.8666    10.0232    5.17465    &lt;1e-6 
-U: 6.0        55.5264    12.6446    4.39132    &lt;1e-4 
-U: 7.0        62.0988    10.6646    5.82292    &lt;1e-8 
-U: 8.0        79.9777    12.0097    6.65941    &lt;1e-10
-U: 9.0        94.1994    13.2638    7.10199    &lt;1e-11
-─────────────────────────────────────────────────────
-</code></pre><h2><a class="nav-anchor" id="Fitting-generalized-linear-mixed-models-1" href="#Fitting-generalized-linear-mixed-models-1">Fitting generalized linear mixed models</a></h2><p>To create a GLMM representation</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.GeneralizedLinearMixedModel" href="#MixedModels.GeneralizedLinearMixedModel"><code>MixedModels.GeneralizedLinearMixedModel</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-none">GeneralizedLinearMixedModel</code></pre><p>Generalized linear mixed-effects model representation</p><p><strong>Fields</strong></p><ul><li><code>LMM</code>: a <a href="#MixedModels.LinearMixedModel"><code>LinearMixedModel</code></a> - the local approximation to the GLMM.</li><li><code>β</code>: the pivoted and possibly truncated fixed-effects vector</li><li><code>β₀</code>: similar to <code>β</code>. Used in the PIRLS algorithm if step-halving is needed.</li><li><code>θ</code>: covariance parameter vector</li><li><code>b</code>: similar to <code>u</code>, equivalent to <code>broadcast!(*, b, LMM.Λ, u)</code></li><li><code>u</code>: a vector of matrices of random effects</li><li><code>u₀</code>: similar to <code>u</code>.  Used in the PIRLS algorithm if step-halving is needed.</li><li><code>resp</code>: a <code>GlmResp</code> object</li><li><code>η</code>: the linear predictor</li><li><code>wt</code>: vector of prior case weights, a value of <code>T[]</code> indicates equal weights.</li></ul><p>The following fields are used in adaptive Gauss-Hermite quadrature, which applies only to models with a single random-effects term, in which case their lengths are the number of levels in the grouping factor for that term.  Otherwise they are zero-length vectors.</p><ul><li><code>devc</code>: vector of deviance components</li><li><code>devc0</code>: vector of deviance components at offset of zero</li><li><code>sd</code>: approximate standard deviation of the conditional density</li><li><code>mult</code>: multiplier</li></ul><p><strong>Properties</strong></p><p>In addition to the fieldnames, the following names are also accessible through the <code>.</code> extractor</p><ul><li><code>theta</code>: synonym for <code>θ</code></li><li><code>beta</code>: synonym for <code>β</code></li><li><code>σ</code> or <code>sigma</code>: common scale parameter (value is <code>NaN</code> for distributions without a scale parameter)</li><li><code>lowerbd</code>: vector of lower bounds on the combined elements of <code>β</code> and <code>θ</code></li><li><code>formula</code>, <code>trms</code>, <code>A</code>, <code>L</code>, and <code>optsum</code>: fields of the <code>LMM</code> field</li><li><code>X</code>: fixed-effects model matrix</li><li><code>y</code>: response vector</li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/generalizedlinearmixedmodel.jl#L1-L38">source</a></section><p>the distribution family for the response, and possibly the link function, must be specified.</p><pre><code class="language-julia">julia&gt; verbaggform = @formula(r2 ~ 1+a+g+b+s+m+(1|id)+(1|item));
+Error: UndefVarError: dat not defined
+</code></pre><h2><a class="nav-anchor" id="Fitting-generalized-linear-mixed-models-1" href="#Fitting-generalized-linear-mixed-models-1">Fitting generalized linear mixed models</a></h2><p>To create a GLMM representation</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.GeneralizedLinearMixedModel" href="#MixedModels.GeneralizedLinearMixedModel"><code>MixedModels.GeneralizedLinearMixedModel</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-none">GeneralizedLinearMixedModel</code></pre><p>Generalized linear mixed-effects model representation</p><p><strong>Fields</strong></p><ul><li><code>LMM</code>: a <a href="#MixedModels.LinearMixedModel"><code>LinearMixedModel</code></a> - the local approximation to the GLMM.</li><li><code>β</code>: the pivoted and possibly truncated fixed-effects vector</li><li><code>β₀</code>: similar to <code>β</code>. Used in the PIRLS algorithm if step-halving is needed.</li><li><code>θ</code>: covariance parameter vector</li><li><code>b</code>: similar to <code>u</code>, equivalent to <code>broadcast!(*, b, LMM.Λ, u)</code></li><li><code>u</code>: a vector of matrices of random effects</li><li><code>u₀</code>: similar to <code>u</code>.  Used in the PIRLS algorithm if step-halving is needed.</li><li><code>resp</code>: a <code>GlmResp</code> object</li><li><code>η</code>: the linear predictor</li><li><code>wt</code>: vector of prior case weights, a value of <code>T[]</code> indicates equal weights.</li></ul><p>The following fields are used in adaptive Gauss-Hermite quadrature, which applies only to models with a single random-effects term, in which case their lengths are the number of levels in the grouping factor for that term.  Otherwise they are zero-length vectors.</p><ul><li><code>devc</code>: vector of deviance components</li><li><code>devc0</code>: vector of deviance components at offset of zero</li><li><code>sd</code>: approximate standard deviation of the conditional density</li><li><code>mult</code>: multiplier</li></ul><p><strong>Properties</strong></p><p>In addition to the fieldnames, the following names are also accessible through the <code>.</code> extractor</p><ul><li><code>theta</code>: synonym for <code>θ</code></li><li><code>beta</code>: synonym for <code>β</code></li><li><code>σ</code> or <code>sigma</code>: common scale parameter (value is <code>NaN</code> for distributions without a scale parameter)</li><li><code>lowerbd</code>: vector of lower bounds on the combined elements of <code>β</code> and <code>θ</code></li><li><code>formula</code>, <code>trms</code>, <code>A</code>, <code>L</code>, and <code>optsum</code>: fields of the <code>LMM</code> field</li><li><code>X</code>: fixed-effects model matrix</li><li><code>y</code>: response vector</li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/generalizedlinearmixedmodel.jl#L1-L38">source</a></section><p>the distribution family for the response, and possibly the link function, must be specified.</p><pre><code class="language-julia">julia&gt; verbaggform = @formula(r2 ~ 1+a+g+b+s+m+(1|id)+(1|item));
 
 julia&gt; gm1 = fit(MixedModel, verbaggform, dat[:VerbAgg], Bernoulli())
-Generalized Linear Mixed Model fit by maximum likelihood (nAGQ = 1)
-  r2 ~ 1 + a + g + b + s + m + (1 | id) + (1 | item)
-  Distribution: Distributions.Bernoulli{Float64}
-  Link: GLM.LogitLink()
-
-  Deviance: 8135.8329
-
-Variance components:
-        Column     Variance   Std.Dev.  
-id   (Intercept)  1.643592091 1.28202656
-item (Intercept)  0.107355977 0.32765222
-
- Number of obs: 7584; levels of grouping factors: 316, 24
-
-Fixed-effects parameters:
-──────────────────────────────────────────────────────
-               Estimate  Std.Error    z value  P(&gt;|z|)
-──────────────────────────────────────────────────────
-(Intercept)   0.553525   0.368908     1.50044   0.1335
-a             0.0574191  0.0160374    3.58032   0.0003
-g: M          0.320834   0.183042     1.75278   0.0796
-b: scold     -1.05986    0.176293    -6.01191   &lt;1e-8 
-b: shout     -2.10389    0.178551   -11.7831    &lt;1e-31
-s: self      -1.05432    0.144737    -7.2844    &lt;1e-12
-m: do        -0.707074   0.144558    -4.89129   &lt;1e-5 
-──────────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 </code></pre><p>The canonical link, which is <code>GLM.LogitLink</code> for the <code>Bernoulli</code> distribution, is used if no explicit link is specified.</p><p>Note that, in keeping with convention in the <a href="https://github.com/JuliaStats/GLM.jl"><code>GLM</code> package</a>, the distribution family for a binary (i.e. 0/1) response is the <code>Bernoulli</code> distribution. The <code>Binomial</code> distribution is only used when the response is the fraction of trials returning a positive, in which case the number of trials must be specified as the case weights.</p><h3><a class="nav-anchor" id="Optional-arguments-to-fit!-1" href="#Optional-arguments-to-fit!-1">Optional arguments to fit!</a></h3><p>An alternative approach is to create the <code>GeneralizedLinearMixedModel</code> object then call <code>fit!</code> on it. In this form optional arguments <code>fast</code> and/or <code>nAGQ</code> can be passed to the optimization process.</p><p>As the name implies, <code>fast=true</code>, provides a faster but somewhat less accurate fit. These fits may suffice for model comparisons.</p><pre><code class="language-julia">julia&gt; gm1a = fit!(GeneralizedLinearMixedModel(verbaggform, dat[:VerbAgg],
     Bernoulli()), fast=true)
-Generalized Linear Mixed Model fit by maximum likelihood (nAGQ = 1)
-  r2 ~ 1 + a + g + b + s + m + (1 | id) + (1 | item)
-  Distribution: Distributions.Bernoulli{Float64}
-  Link: GLM.LogitLink()
-
-  Deviance: 8136.1709
-
-Variance components:
-        Column     Variance   Std.Dev.  
-id   (Intercept)  1.636122426 1.27911001
-item (Intercept)  0.108383394 0.32921633
-
- Number of obs: 7584; levels of grouping factors: 316, 24
-
-Fixed-effects parameters:
-──────────────────────────────────────────────────────
-               Estimate  Std.Error    z value  P(&gt;|z|)
-──────────────────────────────────────────────────────
-(Intercept)   0.548543   0.368446     1.4888    0.1365
-a             0.0543802  0.0159982    3.39915   0.0007
-g: M          0.304244   0.182603     1.66614   0.0957
-b: scold     -1.01749    0.176943    -5.75038   &lt;1e-8 
-b: shout     -2.02067    0.179146   -11.2795    &lt;1e-28
-s: self      -1.01255    0.145248    -6.97114   &lt;1e-11
-m: do        -0.679102   0.145074    -4.68108   &lt;1e-5 
-──────────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 
 julia&gt; deviance(gm1a) - deviance(gm1)
-0.3380157140472875
+Error: UndefVarError: gm1a not defined
 
 julia&gt; @time fit!(GeneralizedLinearMixedModel(verbaggform, dat[:VerbAgg],
     Bernoulli()));
-  4.667091 seconds (16.79 M allocations: 141.059 MiB, 0.71% gc time)
+Error: UndefVarError: dat not defined
 
 julia&gt; @time fit!(GeneralizedLinearMixedModel(verbaggform, dat[:VerbAgg],
     Bernoulli()), fast=true);
-  0.720600 seconds (2.39 M allocations: 26.498 MiB, 9.31% gc time)
+Error: UndefVarError: dat not defined
 </code></pre><p>The optional argument <code>nAGQ=k</code> causes evaluation of the deviance function to use a <code>k</code> point adaptive Gauss-Hermite quadrature rule. This method only applies to models with a single, simple, scalar random-effects term, such as</p><pre><code class="language-julia">julia&gt; contraform = @formula(use ~ 1+a+abs2(a)+l+urb+(1|d));
 
 julia&gt; @time gm2 = fit!(GeneralizedLinearMixedModel(contraform,
     dat[:Contraception], Bernoulli()), nAGQ=9)
-  4.178781 seconds (10.67 M allocations: 311.722 MiB, 1.72% gc time)
-Generalized Linear Mixed Model fit by maximum likelihood (nAGQ = 9)
-  use ~ 1 + a + :(abs2(a)) + l + urb + (1 | d)
-  Distribution: Distributions.Bernoulli{Float64}
-  Link: GLM.LogitLink()
-
-  Deviance: 2372.4589
-
-Variance components:
-     Column    Variance   Std.Dev.  
-d (Intercept)  0.22225346 0.47143765
-
- Number of obs: 1934; levels of grouping factors: 60
-
-Fixed-effects parameters:
-─────────────────────────────────────────────────────────
-                Estimate    Std.Error    z value  P(&gt;|z|)
-─────────────────────────────────────────────────────────
-(Intercept)  -1.03542     0.171935     -6.02213    &lt;1e-8 
-a             0.00353062  0.0090943     0.388224   0.6979
-abs2(a)      -0.00456326  0.000714444  -6.38715    &lt;1e-9 
-l: 1          0.815168    0.159787      5.10159    &lt;1e-6 
-l: 2          0.916554    0.182361      5.02603    &lt;1e-6 
-l: 3+         0.915392    0.183022      5.00153    &lt;1e-6 
-urb: Y        0.696701    0.118143      5.89709    &lt;1e-8 
-─────────────────────────────────────────────────────────
+Error: UndefVarError: dat not defined
 
 julia&gt; @time deviance(fit!(GeneralizedLinearMixedModel(contraform,
     dat[:Contraception], Bernoulli()), nAGQ=9, fast=true))
-  0.086509 seconds (414.52 k allocations: 5.139 MiB)
-2372.5135926229636
+Error: UndefVarError: dat not defined
 
 julia&gt; @time deviance(fit!(GeneralizedLinearMixedModel(contraform,
     dat[:Contraception], Bernoulli())))
-  0.512589 seconds (2.18 M allocations: 19.802 MiB)
-2372.728582443016
+Error: UndefVarError: dat not defined
 
 julia&gt; @time deviance(fit!(GeneralizedLinearMixedModel(contraform,
     dat[:Contraception], Bernoulli()), fast=true))
-  0.048289 seconds (197.69 k allocations: 2.965 MiB)
-2372.7844291358947
+Error: UndefVarError: dat not defined
 </code></pre><h1><a class="nav-anchor" id="Extractor-functions-1" href="#Extractor-functions-1">Extractor functions</a></h1><p><code>LinearMixedModel</code> and <code>GeneralizedLinearMixedModel</code> are subtypes of <code>StatsBase.RegressionModel</code> which, in turn, is a subtype of <code>StatsBase.StatisticalModel</code>. Many of the generic extractors defined in the <code>StatsBase</code> package have methods for these models.</p><h2><a class="nav-anchor" id="Model-fit-statistics-1" href="#Model-fit-statistics-1">Model-fit statistics</a></h2><p>The statistics describing the quality of the model fit include</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.loglikelihood-Tuple{StatisticalModel}" href="#StatsBase.loglikelihood-Tuple{StatisticalModel}"><code>StatsBase.loglikelihood</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-none">loglikelihood(obj::StatisticalModel)</code></pre><p>Return the log-likelihood of the model.</p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.aic" href="#StatsBase.aic"><code>StatsBase.aic</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">aic(obj::StatisticalModel)</code></pre><p>Akaike&#39;s Information Criterion, defined as <span>$-2 \log L + 2k$</span>, with <span>$L$</span> the likelihood of the model, and <code>k</code> its number of consumed degrees of freedom (as returned by <a href="#StatsBase.dof-Tuple{StatisticalModel}"><code>dof</code></a>).</p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.bic" href="#StatsBase.bic"><code>StatsBase.bic</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">bic(obj::StatisticalModel)</code></pre><p>Bayesian Information Criterion, defined as <span>$-2 \log L + k \log n$</span>, with <span>$L$</span> the likelihood of the model,  <span>$k$</span> its number of consumed degrees of freedom (as returned by <a href="#StatsBase.dof-Tuple{StatisticalModel}"><code>dof</code></a>), and <span>$n$</span> the number of observations (as returned by <a href="#StatsBase.nobs-Tuple{StatisticalModel}"><code>nobs</code></a>).</p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.dof-Tuple{StatisticalModel}" href="#StatsBase.dof-Tuple{StatisticalModel}"><code>StatsBase.dof</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-none">dof(obj::StatisticalModel)</code></pre><p>Return the number of degrees of freedom consumed in the model, including when applicable the intercept and the distribution&#39;s dispersion parameter.</p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.nobs-Tuple{StatisticalModel}" href="#StatsBase.nobs-Tuple{StatisticalModel}"><code>StatsBase.nobs</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-none">nobs(obj::StatisticalModel)</code></pre><p>Return the number of independent observations on which the model was fitted. Be careful when using this information, as the definition of an independent observation may vary depending on the model, on the format used to pass the data, on the sampling plan (if specified), etc.</p></div></div></section><pre><code class="language-julia">julia&gt; loglikelihood(fm1)
--163.66352994057004
+Error: UndefVarError: fm1 not defined
 
 julia&gt; aic(fm1)
-333.3270598811401
+Error: UndefVarError: fm1 not defined
 
 julia&gt; bic(fm1)
-337.5306520261266
+Error: UndefVarError: fm1 not defined
 
 julia&gt; dof(fm1)   # 1 fixed effect, 2 variances
-3
+Error: UndefVarError: fm1 not defined
 
 julia&gt; nobs(fm1)  # 30 observations
-30
+Error: UndefVarError: fm1 not defined
 
 julia&gt; loglikelihood(gm1)
--4067.9164279959623
-</code></pre><p>In general the <a href="https://en.wikipedia.org/wiki/Deviance_(statistics)"><code>deviance</code></a> of a statistical model fit is negative twice the log-likelihood adjusting for the saturated model.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.deviance-Tuple{StatisticalModel}" href="#StatsBase.deviance-Tuple{StatisticalModel}"><code>StatsBase.deviance</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-none">deviance(obj::StatisticalModel)</code></pre><p>Return the deviance of the model relative to a reference, which is usually when applicable the saturated model. It is equal, <em>up to a constant</em>, to <span>$-2 \log L$</span>, with <span>$L$</span> the likelihood of the model.</p></div></div></section><p>Because it is not clear what the saturated model corresponding to a particular <code>LinearMixedModel</code> should be, negative twice the log-likelihood is called the <code>objective</code>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.objective" href="#MixedModels.objective"><code>MixedModels.objective</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">objective(m::LinearMixedModel)</code></pre><p>Return negative twice the log-likelihood of model <code>m</code></p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L500-L504">source</a></section><p>This value is also accessible as the <code>deviance</code> but the user should bear in mind that this doesn&#39;t have all the properties of a deviance which is corrected for the saturated model. For example, it is not necessarily non-negative.</p><pre><code class="language-julia">julia&gt; objective(fm1)
-327.3270598811401
+Error: UndefVarError: gm1 not defined
+</code></pre><p>In general the <a href="https://en.wikipedia.org/wiki/Deviance_(statistics)"><code>deviance</code></a> of a statistical model fit is negative twice the log-likelihood adjusting for the saturated model.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.deviance-Tuple{StatisticalModel}" href="#StatsBase.deviance-Tuple{StatisticalModel}"><code>StatsBase.deviance</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-none">deviance(obj::StatisticalModel)</code></pre><p>Return the deviance of the model relative to a reference, which is usually when applicable the saturated model. It is equal, <em>up to a constant</em>, to <span>$-2 \log L$</span>, with <span>$L$</span> the likelihood of the model.</p></div></div></section><p>Because it is not clear what the saturated model corresponding to a particular <code>LinearMixedModel</code> should be, negative twice the log-likelihood is called the <code>objective</code>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.objective" href="#MixedModels.objective"><code>MixedModels.objective</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">objective(m::LinearMixedModel)</code></pre><p>Return negative twice the log-likelihood of model <code>m</code></p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L500-L504">source</a></section><p>This value is also accessible as the <code>deviance</code> but the user should bear in mind that this doesn&#39;t have all the properties of a deviance which is corrected for the saturated model. For example, it is not necessarily non-negative.</p><pre><code class="language-julia">julia&gt; objective(fm1)
+Error: UndefVarError: fm1 not defined
 
 julia&gt; deviance(fm1)
-327.3270598811401
-</code></pre><p>The value optimized when fitting a <code>GeneralizedLinearMixedModel</code> is the Laplace approximation to the deviance or an adaptive Gauss-Hermite evaluation.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.deviance!" href="#MixedModels.deviance!"><code>MixedModels.deviance!</code></a> — <span class="docstring-category">Function</span>.</div><div><div><p>deviance!(m::GeneralizedLinearMixedModel, nAGQ=1)</p><p>Update <code>m.η</code>, <code>m.μ</code>, etc., install the working response and working weights in <code>m.LMM</code>, update <code>m.LMM.A</code> and <code>m.LMM.R</code>, then evaluate the <a href="#StatsBase.deviance-Tuple{StatisticalModel}"><code>deviance</code></a>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/generalizedlinearmixedmodel.jl#L95-L100">source</a></section><pre><code class="language-julia">julia&gt; MixedModels.deviance!(gm1)
-8135.832855991941
-</code></pre><h2><a class="nav-anchor" id="Fixed-effects-parameter-estimates-1" href="#Fixed-effects-parameter-estimates-1">Fixed-effects parameter estimates</a></h2><p>The <code>coef</code> and <code>fixef</code> extractors both return the maximum likelihood estimates of the fixed-effects coefficients.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.coef" href="#StatsBase.coef"><code>StatsBase.coef</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">coef(obj::StatisticalModel)</code></pre><p>Return the coefficients of the model.</p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.fixef" href="#MixedModels.fixef"><code>MixedModels.fixef</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">fixef(m::MixedModel, permuted=true)</code></pre><p>Return the fixed-effects parameter vector estimate of <code>m</code>.</p><p>If <code>permuted</code> is <code>true</code> the vector elements are permuted according to <code>first(m.feterms).piv</code> and truncated to the rank of that term.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L361-L368">source</a></section><pre><code class="language-julia">julia&gt; show(coef(fm1))
-[1527.4999999999993]
+Error: UndefVarError: fm1 not defined
+</code></pre><p>The value optimized when fitting a <code>GeneralizedLinearMixedModel</code> is the Laplace approximation to the deviance or an adaptive Gauss-Hermite evaluation.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.deviance!" href="#MixedModels.deviance!"><code>MixedModels.deviance!</code></a> — <span class="docstring-category">Function</span>.</div><div><div><p>deviance!(m::GeneralizedLinearMixedModel, nAGQ=1)</p><p>Update <code>m.η</code>, <code>m.μ</code>, etc., install the working response and working weights in <code>m.LMM</code>, update <code>m.LMM.A</code> and <code>m.LMM.R</code>, then evaluate the <a href="#StatsBase.deviance-Tuple{StatisticalModel}"><code>deviance</code></a>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/generalizedlinearmixedmodel.jl#L95-L100">source</a></section><pre><code class="language-julia">julia&gt; MixedModels.deviance!(gm1)
+Error: UndefVarError: gm1 not defined
+</code></pre><h2><a class="nav-anchor" id="Fixed-effects-parameter-estimates-1" href="#Fixed-effects-parameter-estimates-1">Fixed-effects parameter estimates</a></h2><p>The <code>coef</code> and <code>fixef</code> extractors both return the maximum likelihood estimates of the fixed-effects coefficients.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.coef" href="#StatsBase.coef"><code>StatsBase.coef</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">coef(obj::StatisticalModel)</code></pre><p>Return the coefficients of the model.</p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.fixef" href="#MixedModels.fixef"><code>MixedModels.fixef</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">fixef(m::MixedModel, permuted=true)</code></pre><p>Return the fixed-effects parameter vector estimate of <code>m</code>.</p><p>If <code>permuted</code> is <code>true</code> the vector elements are permuted according to <code>first(m.feterms).piv</code> and truncated to the rank of that term.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L361-L368">source</a></section><pre><code class="language-julia">julia&gt; show(coef(fm1))
+Error: UndefVarError: fm1 not defined
+
 julia&gt; show(fixef(fm1))
-[1527.4999999999993]
+Error: UndefVarError: fm1 not defined
+
 julia&gt; show(fixef(gm1))
-[0.5535251877717157, 0.05741910947709833, 0.3208338381685662, -1.0598598112960407, -2.103887104894105, -1.05432197998703, -0.7070740971874335]</code></pre><p>An alternative extractor for the fixed-effects coefficient is the <code>β</code> property. Properties whose names are Greek letters usually have an alternative spelling, which is the name of the Greek letter.</p><pre><code class="language-julia">julia&gt; show(fm1.β)
-[1527.4999999999993]
+Error: UndefVarError: gm1 not defined
+</code></pre><p>An alternative extractor for the fixed-effects coefficient is the <code>β</code> property. Properties whose names are Greek letters usually have an alternative spelling, which is the name of the Greek letter.</p><pre><code class="language-julia">julia&gt; show(fm1.β)
+Error: UndefVarError: fm1 not defined
+
 julia&gt; show(fm1.beta)
-[1527.4999999999993]
+Error: UndefVarError: fm1 not defined
+
 julia&gt; show(gm1.β)
-[0.5535251877717157, 0.05741910947709833, 0.3208338381685662, -1.0598598112960407, -2.103887104894105, -1.05432197998703, -0.7070740971874335]</code></pre><p>A full list of property names is returned by <code>propertynames</code></p><pre><code class="language-julia">julia&gt; propertynames(fm1)
-(:formula, :sqrtwts, :A, :L, :optsum, :θ, :theta, :β, :beta, :λ, :lambda, :stderror, :σ, :sigma, :σs, :sigmas, :b, :u, :lowerbd, :X, :y, :rePCA, :reterms, :feterms, :objective, :pvalues)
+Error: UndefVarError: gm1 not defined
+</code></pre><p>A full list of property names is returned by <code>propertynames</code></p><pre><code class="language-julia">julia&gt; propertynames(fm1)
+Error: UndefVarError: fm1 not defined
 
 julia&gt; propertynames(gm1)
-(:A, :L, :theta, :beta, :coef, :λ, :lambda, :σ, :sigma, :X, :y, :lowerbd, :σρs, :σs, :LMM, :β, :β₀, :θ, :b, :u, :u₀, :resp, :η, :wt, :devc, :devc0, :sd, :mult)
+Error: UndefVarError: gm1 not defined
 </code></pre><p>The variance-covariance matrix of the fixed-effects coefficients is returned by</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.vcov" href="#StatsBase.vcov"><code>StatsBase.vcov</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">vcov(obj::StatisticalModel)</code></pre><p>Return the variance-covariance matrix for the coefficients of the model.</p></div></div></section><pre><code class="language-julia">julia&gt; vcov(fm2)
-2×2 Array{Float64,2}:
- 43.9868   -1.37039
- -1.37039   2.25671
+Error: UndefVarError: fm2 not defined
 
 julia&gt; vcov(gm1)
-7×7 Array{Float64,2}:
-  0.136093    -0.00513621   -0.00895421   …  -0.0104974    -0.0104985  
- -0.00513621   0.000257199   6.59023e-5      -1.35603e-5   -9.38564e-6 
- -0.00895421   6.59023e-5    0.0335045       -7.372e-5     -4.81944e-5 
- -0.0155523   -1.31704e-5   -8.48273e-5       0.000243583   0.000157716
- -0.0157103   -2.66281e-5   -0.000148821      0.000603884   0.000477024
- -0.0104974   -1.35603e-5   -7.372e-5     …   0.0209488     0.000227075
- -0.0104985   -9.38564e-6   -4.81944e-5       0.000227075   0.020897   
+Error: UndefVarError: gm1 not defined
 </code></pre><p>The standard errors are the square roots of the diagonal elements of the estimated variance-covariance matrix of the fixed-effects coefficient estimators.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.stderror" href="#StatsBase.stderror"><code>StatsBase.stderror</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">stderror(obj::StatisticalModel)</code></pre><p>Return the standard errors for the coefficients of the model.</p></div></div></section><pre><code class="language-julia">julia&gt; show(StatsBase.stderror(fm2))
-[6.63225780553425, 1.5022354447437207]
-julia&gt; show(StatsBase.stderror(gm1))
-[0.3689076638786443, 0.016037423620016367, 0.18304245424213314, 0.17629333626179403, 0.17855133810767904, 0.14473689621511115, 0.1445578231602385]</code></pre><p>Finally, the <code>coeftable</code> generic produces a table of coefficient estimates, their standard errors, and their ratio. The <em>p-values</em> quoted here should be regarded as approximations.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.coeftable" href="#StatsBase.coeftable"><code>StatsBase.coeftable</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">coeftable(obj::StatisticalModel; level::Real=0.95)</code></pre><p>Return a table of class <code>CoefTable</code> with coefficients and related statistics. <code>level</code> determines the level for confidence intervals (by default, 95%).</p></div></div></section><pre><code class="language-julia">julia&gt; coeftable(fm2)
-───────────────────────────────────────────────────
-             Estimate  Std.Error   z value  P(&gt;|z|)
-───────────────────────────────────────────────────
-(Intercept)  251.405     6.63226  37.9064    &lt;1e-99
-U             10.4673    1.50224   6.96781   &lt;1e-11
-───────────────────────────────────────────────────
-</code></pre><h2><a class="nav-anchor" id="Covariance-parameter-estimates-1" href="#Covariance-parameter-estimates-1">Covariance parameter estimates</a></h2><p>The covariance parameters estimates, in the form shown in the model summary, are a <code>VarCorr</code> object</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.VarCorr" href="#MixedModels.VarCorr"><code>MixedModels.VarCorr</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-none">VarCorr</code></pre><p>Information from the fitted random-effects variance-covariance matrices.</p><p><strong>Members</strong></p><ul><li><code>σρ</code>: a <code>NamedTuple</code> of <code>NamedTuple</code>s as returned from <code>σρs</code></li><li><code>s</code>: the estimate of the per-observation dispersion parameter</li></ul><p>The main purpose of defining this type is to isolate the logic in the show method.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/varcorr.jl#L1-L11">source</a></section><pre><code class="language-julia">julia&gt; VarCorr(fm2)
-Variance components:
-            Column    Variance  Std.Dev.   Corr.
-G        (Intercept)  565.51068 23.780469
-         U             32.68212  5.716828  0.08
-Residual              654.94145 25.591824
+Error: UndefVarError: fm2 not defined
 
+julia&gt; show(StatsBase.stderror(gm1))
+Error: UndefVarError: gm1 not defined
+</code></pre><p>Finally, the <code>coeftable</code> generic produces a table of coefficient estimates, their standard errors, and their ratio. The <em>p-values</em> quoted here should be regarded as approximations.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StatsBase.coeftable" href="#StatsBase.coeftable"><code>StatsBase.coeftable</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">coeftable(obj::StatisticalModel; level::Real=0.95)</code></pre><p>Return a table of class <code>CoefTable</code> with coefficients and related statistics. <code>level</code> determines the level for confidence intervals (by default, 95%).</p></div></div></section><pre><code class="language-julia">julia&gt; coeftable(fm2)
+Error: UndefVarError: fm2 not defined
+</code></pre><h2><a class="nav-anchor" id="Covariance-parameter-estimates-1" href="#Covariance-parameter-estimates-1">Covariance parameter estimates</a></h2><p>The covariance parameters estimates, in the form shown in the model summary, are a <code>VarCorr</code> object</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.VarCorr" href="#MixedModels.VarCorr"><code>MixedModels.VarCorr</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-none">VarCorr</code></pre><p>Information from the fitted random-effects variance-covariance matrices.</p><p><strong>Members</strong></p><ul><li><code>σρ</code>: a <code>NamedTuple</code> of <code>NamedTuple</code>s as returned from <code>σρs</code></li><li><code>s</code>: the estimate of the per-observation dispersion parameter</li></ul><p>The main purpose of defining this type is to isolate the logic in the show method.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/varcorr.jl#L1-L11">source</a></section><pre><code class="language-julia">julia&gt; VarCorr(fm2)
+Error: UndefVarError: fm2 not defined
 
 julia&gt; VarCorr(gm1)
-Variance components:
-        Column     Variance   Std.Dev.  
-id   (Intercept)  1.643592091 1.28202656
-item (Intercept)  0.107355977 0.32765222
-
-
-</code></pre><p>Individual components are returned by other extractors</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.varest" href="#MixedModels.varest"><code>MixedModels.varest</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">varest(m::LinearMixedModel)</code></pre><p>Returns the estimate of σ², the variance of the conditional distribution of Y given B.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L822-L826">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.sdest" href="#MixedModels.sdest"><code>MixedModels.sdest</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">sdest(m::LinearMixedModel)</code></pre><p>Return the estimate of σ, the standard deviation of the per-observation noise.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L666-L670">source</a></section><pre><code class="language-julia">julia&gt; varest(fm2)
-654.9414524552568
+Error: UndefVarError: gm1 not defined
+</code></pre><p>Individual components are returned by other extractors</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.varest" href="#MixedModels.varest"><code>MixedModels.varest</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">varest(m::LinearMixedModel)</code></pre><p>Returns the estimate of σ², the variance of the conditional distribution of Y given B.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L822-L826">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.sdest" href="#MixedModels.sdest"><code>MixedModels.sdest</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">sdest(m::LinearMixedModel)</code></pre><p>Return the estimate of σ, the standard deviation of the per-observation noise.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L666-L670">source</a></section><pre><code class="language-julia">julia&gt; varest(fm2)
+Error: UndefVarError: fm2 not defined
 
 julia&gt; sdest(fm2)
-25.59182393764182
+Error: UndefVarError: fm2 not defined
 
 julia&gt; fm2.σ
-25.59182393764182
-</code></pre><h2><a class="nav-anchor" id="Conditional-modes-of-the-random-effects-1" href="#Conditional-modes-of-the-random-effects-1">Conditional modes of the random effects</a></h2><p>The <code>ranef</code> extractor</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.ranef" href="#MixedModels.ranef"><code>MixedModels.ranef</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">ranef(m::LinearMixedModel; uscale=false, named=true)</code></pre><p>Return, as a <code>Vector{Vector{T}}</code> (<code>Vector{NamedVector{T}}</code> if <code>named=true</code>), the conditional modes of the random effects in model <code>m</code>.</p><p>If <code>uscale</code> is <code>true</code> the random effects are on the spherical (i.e. <code>u</code>) scale, otherwise on the original scale.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L592-L600">source</a></section><pre><code class="language-julia">julia&gt; ranef(fm1)
-1-element Array{Array{Float64,2},1}:
- [-16.62822143006428 0.3695160317797815 … 53.57982460798647 -42.49434365460914]
+Error: UndefVarError: fm2 not defined
+</code></pre><h2><a class="nav-anchor" id="Conditional-modes-of-the-random-effects-1" href="#Conditional-modes-of-the-random-effects-1">Conditional modes of the random effects</a></h2><p>The <code>ranef</code> extractor</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.ranef" href="#MixedModels.ranef"><code>MixedModels.ranef</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">ranef(m::LinearMixedModel; uscale=false, named=true)</code></pre><p>Return, as a <code>Vector{Vector{T}}</code> (<code>Vector{NamedVector{T}}</code> if <code>named=true</code>), the conditional modes of the random effects in model <code>m</code>.</p><p>If <code>uscale</code> is <code>true</code> the random effects are on the spherical (i.e. <code>u</code>) scale, otherwise on the original scale.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L592-L600">source</a></section><pre><code class="language-julia">julia&gt; ranef(fm1)
+Error: UndefVarError: fm1 not defined
 
 julia&gt; fm1.b
-1-element Array{Array{Float64,2},1}:
- [-16.62822143006428 0.3695160317797815 … 53.57982460798647 -42.49434365460914]
-</code></pre><p>returns the <em>conditional modes</em> of the random effects given the observed data. That is, these are the values that maximize the conditional density of the random effects given the observed data. For a <code>LinearMixedModel</code> these are also the conditional mean values.</p><p>These are sometimes called the <em>best linear unbiased predictors</em> or <a href="https://en.wikipedia.org/wiki/Best_linear_unbiased_prediction"><code>BLUPs</code></a> but that name is not particularly meaningful.</p><p>At a superficial level these can be considered as the &quot;estimates&quot; of the random effects, with a bit of hand waving, but pursuing this analogy too far usually results in confusion.</p><p>The corresponding conditional variances are returned by</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.condVar" href="#MixedModels.condVar"><code>MixedModels.condVar</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">condVar(m::LinearMixedModel)</code></pre><p>Return the conditional variances matrices of the random effects.</p><p>The random effects are returned by <code>ranef</code> as a vector of length <code>k</code>, where <code>k</code> is the number of random effects terms.  The <code>i</code>th element is a matrix of size <code>vᵢ × ℓᵢ</code>  where <code>vᵢ</code> is the size of the vector-valued random effects for each of the <code>ℓᵢ</code> levels of the grouping factor.  Technically those values are the modes of the conditional distribution of the random effects given the observed data.</p><p>This function returns an array of <code>k</code> three dimensional arrays, where the <code>i</code>th array is of size <code>vᵢ × vᵢ × ℓᵢ</code>.  These are the diagonal blocks from the conditional variance-covariance matrix,</p><pre><code class="language-none">s² Λ(Λ&#39;Z&#39;ZΛ + I)⁻¹Λ&#39;</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/c983d58af107eb4068d1703fc412fefbf404c5bb/src/linearmixedmodel.jl#L188-L205">source</a></section><pre><code class="language-julia">julia&gt; condVar(fm1)
-1-element Array{Array{Float64,3},1}:
- [362.3104715146578]
-
-[362.3104715146578]
-
-[362.3104715146578]
-
-[362.3104715146578]
-
-[362.3104715146578]
-
-[362.3104715146578]
+Error: UndefVarError: fm1 not defined
+</code></pre><p>returns the <em>conditional modes</em> of the random effects given the observed data. That is, these are the values that maximize the conditional density of the random effects given the observed data. For a <code>LinearMixedModel</code> these are also the conditional mean values.</p><p>These are sometimes called the <em>best linear unbiased predictors</em> or <a href="https://en.wikipedia.org/wiki/Best_linear_unbiased_prediction"><code>BLUPs</code></a> but that name is not particularly meaningful.</p><p>At a superficial level these can be considered as the &quot;estimates&quot; of the random effects, with a bit of hand waving, but pursuing this analogy too far usually results in confusion.</p><p>The corresponding conditional variances are returned by</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="MixedModels.condVar" href="#MixedModels.condVar"><code>MixedModels.condVar</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-none">condVar(m::LinearMixedModel)</code></pre><p>Return the conditional variances matrices of the random effects.</p><p>The random effects are returned by <code>ranef</code> as a vector of length <code>k</code>, where <code>k</code> is the number of random effects terms.  The <code>i</code>th element is a matrix of size <code>vᵢ × ℓᵢ</code>  where <code>vᵢ</code> is the size of the vector-valued random effects for each of the <code>ℓᵢ</code> levels of the grouping factor.  Technically those values are the modes of the conditional distribution of the random effects given the observed data.</p><p>This function returns an array of <code>k</code> three dimensional arrays, where the <code>i</code>th array is of size <code>vᵢ × vᵢ × ℓᵢ</code>.  These are the diagonal blocks from the conditional variance-covariance matrix,</p><pre><code class="language-none">s² Λ(Λ&#39;Z&#39;ZΛ + I)⁻¹Λ&#39;</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaStats/MixedModels.jl/blob/f373812111132bafa4b6526a065b84e8e586afc1/src/linearmixedmodel.jl#L188-L205">source</a></section><pre><code class="language-julia">julia&gt; condVar(fm1)
+Error: UndefVarError: fm1 not defined
 </code></pre><footer><hr/><a class="previous" href="../"><span class="direction">Previous</span><span class="title">MixedModels.jl Documentation</span></a><a class="next" href="../optimization/"><span class="direction">Next</span><span class="title">Details of the parameter estimation</span></a></footer></article></body></html>
