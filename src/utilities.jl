@@ -59,13 +59,20 @@ function Base.sum!(s::AbstractVector{T}, a::RaggedArray{T}) where {T}
     s
 end
 
+function rownormalize!(A::AbstractMatrix)
+    for r in eachrow(A)
+        normalize!(r)
+    end
+    A
+end
+
 """
-    normalized_variance_cumsum(A::AbstractMatrix)
+    normalized_variance_cumsum(A::AbstractMatrix, corr::Bool=true)
 
 Return the cumulative sum of the squared singular values of `A` normalized to sum to 1
 """
-function normalized_variance_cumsum(A::AbstractMatrix)
-    vars = cumsum(abs2.(svdvals(A)))
+function normalized_variance_cumsum(A::AbstractMatrix, corr::Bool=true)
+    vars = cumsum(abs2.(svdvals(corr ? rownormalize!(copy(A)) : A)))
     vars ./ last(vars)
 end
 
@@ -114,4 +121,44 @@ function replicate(f::Function, n::Integer; use_threads=false)
         results = @showprogress [f() for _ in Base.OneTo(n)]
     end
     results
+end
+
+"""
+    PCA{T<:AbstractFloat}
+
+Principal Components Analysis
+"""
+struct PCA{T<:AbstractFloat}
+    covcor::Symmetric{T,Matrix{T}}
+    sv::SVD{T,T,Matrix{T}}
+    corr::Bool
+end
+
+function PCA(covfac::AbstractMatrix, corr::Bool=true)
+    covf = corr ? rownormalize!(copy(covfac)) : copy(covfac)
+    PCA(Symmetric(covf*covf', :L), svd(covf), corr)
+end
+
+function Base.show(io::IO, pca::PCA)
+    println(io)
+    println(io, 
+            "Principal components based on ", 
+            pca.corr ? "correlation" : "(relative) covariance",
+            " matrix")
+    show(io, pca.covcor)
+    println(io)
+    println(io, "Standard deviations:")
+    sv = pca.sv
+    show(io, sv.S)
+    println(io)
+    println(io, "Variances:")
+    vv = abs2.(sv.S)
+    show(io, vv)
+    println(io)
+    println(io, "Normalized cumulative variances:")
+    cumvv = cumsum(vv)
+    show(io, cumvv ./ last(cumvv))
+    println(io)
+    println(io, "Component loadings")
+    println(io, sv.U)
 end
